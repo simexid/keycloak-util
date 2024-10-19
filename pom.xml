@@ -10,10 +10,6 @@
   <description>A library for simplifying Keycloak admin API configuration and calls for spring boot application</description>
   <url>http://maven.apache.org</url>
 
-  <properties>
-    <gpg.executable>C:\Program Files (x86)\GnuPG\bin\gpg.exe</gpg.executable>
-  </properties>
-
   <licenses>
     <license>
       <name>MIT</name>
