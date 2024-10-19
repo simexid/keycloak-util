@@ -109,7 +109,7 @@ At this time, the following methods are available:
 | `updateUser`           | `(String sub, SSOUser user)`                                                     | Update SSO user.                                                                                         |
 
 
-The **Javadoc** is available [here](docs/apidocs/index.html).
+The **Javadoc** is available [here](https://simexid.github.io/keycloak-util/apidocs/org/simexid/keycloak/service/KeycloakUtil.html).
 
 Fot addRoleToUser, deleteRoleToUser, searchRoles and callForAddRole, the type parameter is used to specify if the role is a realm role or a client role. If the role is a client role, you can specified another clientUUID instead of the one specified in the application.yml. For realm role or default client-uuid leave null.
 
