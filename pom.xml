@@ -1,12 +1,40 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>org.simexid</groupId>
   <artifactId>keycloak-util</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <name>keycloak-util</name>
+  <description>A library for simplifying Keycloak admin API configuration and calls for spring boot application</description>
   <url>http://maven.apache.org</url>
+
+  <properties>
+    <gpg.executable>C:\Program Files (x86)\GnuPG\bin\gpg.exe</gpg.executable>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://choosealicense.com/licenses/mit/</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>pietrosaccone</id>
+      <name>Pietro Saccone</name>
+      <email>info@simexid.org</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git:github.com/simexid/keycloak-util.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:simexid/keycloak-util.git</developerConnection>
+    <url>https://github.com/simexid/keycloak-util.git</url>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -56,9 +84,58 @@
               <goal>javadoc</goal>
             </goals>
           </execution>
+          <execution>
+            <id>attach-javadocs-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.7</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.6.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+        </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>central</id>
+      <name>Central Repository OSSRH</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
 </project>
