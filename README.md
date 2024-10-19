@@ -93,19 +93,21 @@ public class YourService {
 The KeycloakUtil class provides methods to interact with the Keycloak admin APIs.
 At this time, the following methods are available:
 
-| **Method**      | **Input**                                                                                  | **Description**                                                                                       |
-|-----------------|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `authorized`    | None                                                                                       | Checks if the client is authorized.                                                                    |
-| `getUserInfo`   | `(String userId)`                                                                          | Retrieves information about a user by their ID.                                                        |
-| `searchUser`    | `(KeycloakUtil.SearchType searchType, String searchValue)`                                 | Searches for users by email, username, ID, or text.                                                    |
-| `addUserAttributes` | `(String userId, List<HashMap<String, List>> attributes)`                                   | Adds attributes to a user.                                                                             |
-| `deleteUserAttributes` | `(String userId, List attributes)`                                                         | Deletes specified attributes from a user.                                                              |
-| `addRoleToUser` | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`              | Adds a role to a user.                                                                                 |
-| `deleteRoleToUser` | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`              | Deletes a role from a user.                                                                            |
-| `searchRoles`   | `(String name, KeycloakEnum.Type type, String clientUUID)`                                 | Searches for roles by name.                                                                            |
-| `retrieveUserRole` | `(String sub, KeycloakEnum.Type type, String clientUUID)`                                  | Retrieves the roles of a user.                                                                         |
-| `callForAddRole` | `(String userId, String jsonPayload, KeycloakEnum.Type type, String clientUUID)`           | Calls the Keycloak API to override the role of a user. This overrides all the roles of the user.        |
-| `callForAddAttributes` | `(String userId, String jsonPayload)`                                                      | Calls the Keycloak API to override attributes for a user. This overrides all the attributes of the user. |
+| **Method**             | **Input**                                                                        | **Description**                                                                                          |
+|------------------------|----------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `authorized`           | None                                                                             | Checks if the client is authorized.                                                                      |
+| `getUserInfo`          | `(String userId)`                                                                | Retrieves information about a user by their ID.                                                          |
+| `searchUser`           | `(KeycloakUtil.SearchType searchType, String searchValue)`                       | Searches for users by email, username, ID, or text.                                                      |
+| `addUserAttributes`    | `(String userId, List<HashMap<String, List>> attributes)`                        | Adds attributes to a user.                                                                               |
+| `deleteUserAttributes` | `(String userId, List attributes)`                                               | Deletes specified attributes from a user.                                                                |
+| `addRoleToUser`        | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`    | Adds a role to a user.                                                                                   |
+| `deleteRoleToUser`     | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`    | Deletes a role from a user.                                                                              |
+| `searchRoles`          | `(String name, KeycloakEnum.Type type, String clientUUID)`                       | Searches for roles by name.                                                                              |
+| `retrieveUserRole`     | `(String sub, KeycloakEnum.Type type, String clientUUID)`                        | Retrieves the roles of a user.                                                                           |
+| `callForAddRole`       | `(String userId, String jsonPayload, KeycloakEnum.Type type, String clientUUID)` | Calls the Keycloak API to override the role of a user. This overrides all the roles of the user.         |
+| `callForAddAttributes` | `(String userId, String jsonPayload)`                                            | Calls the Keycloak API to override attributes for a user. This overrides all the attributes of the user. |
+| `updateUser`           | `(String sub, SSOUser user)`                                                     | Update SSO user.                                                                                         |
+
 
 The **Javadoc** is available [here](docs/apidocs/index.html).
 
@@ -194,6 +196,13 @@ public class KeycloakServiceExample {
                 "}";
         boolean callForAddAttributes = keycloakUtil.callForAddAttributes("user-id", jsonPayload);
         System.out.println("Call For Add Attributes: " + callForAddAttributes);
+        
+        // Update user
+        SSOUser user = keycloakUtil.getUserInfo("user-id");
+        user.setFirstName("New First Name");
+        user.setLastName("New Last Name");
+        boolean updateUser = keycloakUtil.updateUser("user-id", user);
+        System.out.println("Update User: " + updateUser);
         
     }
 }

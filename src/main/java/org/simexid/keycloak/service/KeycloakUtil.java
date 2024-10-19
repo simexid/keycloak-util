@@ -143,6 +143,34 @@ public class KeycloakUtil {
     }
 
     /**
+     * Updates a user in Keycloak.
+     *
+     * @param sub the user ID
+     * @param user the user sso representation
+     * @return true if the user was updated successfully, false otherwise
+     * @throws AuthorizationException if the client is not authorized
+     * @throws GenericException if an error occurs during the operation
+     */
+    public boolean updateUser(String sub, SSOUser user) throws AuthorizationException, GenericException {
+        if (!authorized()) {
+            return false;
+        }
+        try {
+            RestTemplate rest = new RestTemplate();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
+            HttpEntity<SSOUser> request =
+                    new HttpEntity<>(user, headers);
+
+            ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.PUT, request, String.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            throw new GenericException();
+        }
+    }
+
+    /**
      * Adds attributes to a user in Keycloak.
      *
      * @param sub the user ID
