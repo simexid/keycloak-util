@@ -5,10 +5,10 @@
   <groupId>org.simexid</groupId>
   <artifactId>keycloak-util</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.5</version>
+  <version>0.0.6</version>
   <name>keycloak-util</name>
   <description>A library for simplifying Keycloak admin API configuration and calls for spring boot application</description>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/simexid/keycloak-util.git</url>
 
   <licenses>
     <license>
@@ -71,7 +71,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.10.1</version>
         <configuration>
-          <outputDirectory>${project.basedir}/docs</outputDirectory> <!-- Directory di output -->
+          <outputDirectory>${project.basedir}/docs</outputDirectory>
         </configuration>
         <executions>
           <execution>
