@@ -74,7 +74,32 @@ public class SSORoles {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SSORoles ssoRoles = (SSORoles) o;
+        return id.equals(ssoRoles.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
     public String toString() {
+        return "SSORoles{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", composite=" + composite +
+                ", clientRole=" + clientRole +
+                ", containerId='" + containerId + '\'' +
+                '}';
+    }
+
+    public String toJson() {
         return new Gson().toJson(this);
     }
 }
