@@ -184,6 +184,9 @@ public class KeycloakUtil {
         SSOUser user = getUserInfo(sub);
         for (HashMap<String, List<String>> attribute : attributes) {
             for (Map.Entry<String, List<String>> entry : attribute.entrySet()) {
+                if (user.getAttributes()==null) {
+                    user.setAttributes(new HashMap<>());
+                }
                 user.getAttributes().put(entry.getKey(), entry.getValue());
             }
         }
@@ -475,6 +478,23 @@ public class KeycloakUtil {
         }
         } catch (Exception e) {
             throw new GenericException(e);
+        }
+    }
+
+    /**
+     * Get the current keycloak token and expiration
+     *
+     * @return an HashMap with the token string as "token" and the expiration in long format as "expiration" if authorized, else a null object
+     * @throws AuthorizationException if the client is not authorized
+     */
+    public HashMap<String, Object> getToken() throws AuthorizationException {
+        if (authorized() && !token.isEmpty() && expiration>0) {
+            HashMap<String, Object> tokenObj = new HashMap<>();
+            tokenObj.put("token", token);
+            tokenObj.put("expiration", expiration);
+            return tokenObj;
+        } else {
+            return null;
         }
     }
 }
