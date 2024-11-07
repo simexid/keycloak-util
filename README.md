@@ -107,7 +107,7 @@ At this time, the following methods are available:
 | `callForAddRole`       | `(String userId, String jsonPayload, KeycloakEnum.Type type, String clientUUID)` | Calls the Keycloak API to override the role of a user. This overrides all the roles of the user.         |
 | `callForAddAttributes` | `(String userId, String jsonPayload)`                                            | Calls the Keycloak API to override attributes for a user. This overrides all the attributes of the user. |
 | `updateUser`           | `(String sub, SSOUser user)`                                                     | Update SSO user.                                                                                         |
-
+| `getToken`             | None                                                                             | Retrieve the current authorized token and the expiration                                                 |
 
 The **Javadoc** is available [here](https://simexid.github.io/keycloak-util/apidocs/org/simexid/keycloak/service/KeycloakUtil.html).
 
