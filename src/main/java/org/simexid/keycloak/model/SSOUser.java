@@ -1,8 +1,11 @@
 
 package org.simexid.keycloak.model;
 
+import com.google.gson.Gson;
+
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -22,6 +25,10 @@ public class SSOUser {
     private Long notBefore;
     private String username;
     private HashMap<String, List<String>> attributes;
+    private List<String> realmRoles;
+    private Map<String, List<String>> clientRoles;
+    private List<String> groups;
+    private List<String> requiredActions;
 
     public Long getCreatedTimestamp() {
         return createdTimestamp;
@@ -111,6 +118,38 @@ public class SSOUser {
         this.attributes = attributes;
     }
 
+    public List<String> getRealmRoles() {
+        return realmRoles;
+    }
+
+    public void setRealmRoles(List<String> realmRoles) {
+        this.realmRoles = realmRoles;
+    }
+
+    public Map<String, List<String>> getClientRoles() {
+        return clientRoles;
+    }
+
+    public void setClientRoles(Map<String, List<String>> clientRoles) {
+        this.clientRoles = clientRoles;
+    }
+
+    public List<String> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<String> groups) {
+        this.groups = groups;
+    }
+
+    public List<String> getRequiredActions() {
+        return requiredActions;
+    }
+
+    public void setRequiredActions(List<String> requiredActions) {
+        this.requiredActions = requiredActions;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -122,5 +161,30 @@ public class SSOUser {
     @Override
     public int hashCode() {
         return Objects.hash(id, username);
+    }
+
+    @Override
+    public String toString() {
+        return "SSOUser{" +
+                "createdTimestamp=" + createdTimestamp +
+                ", email='" + email + '\'' +
+                ", emailVerified=" + emailVerified +
+                ", enabled=" + enabled +
+                ", federatedIdentities=" + federatedIdentities +
+                ", firstName='" + firstName + '\'' +
+                ", id='" + id + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", notBefore=" + notBefore +
+                ", username='" + username + '\'' +
+                ", attributes=" + attributes +
+                ", realmRoles=" + realmRoles +
+                ", clientRoles=" + clientRoles +
+                ", groups=" + groups +
+                ", requiredActions=" + requiredActions +
+                '}';
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 }

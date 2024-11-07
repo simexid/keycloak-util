@@ -1,6 +1,8 @@
 package org.simexid.keycloak.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
+
 import java.util.Objects;
 
 /**
@@ -44,5 +46,17 @@ public class KeycloakTokenResponse {
     @Override
     public int hashCode() {
         return accessToken != null ? accessToken.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "KeycloakTokenResponse{" +
+                "accessToken='" + accessToken + '\'' +
+                ", exp=" + exp +
+                '}';
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 }
