@@ -275,7 +275,7 @@ public class KeycloakUtil {
         }
         List<SSORoles> userRole = retrieveUserRole(users.get(0).getId(), type, clientUUID);
         userRole.add(roles.get(0));
-        String payload = userRole.toString();
+        String payload = new Gson().toJson(userRole);
         return callForAddRole(users.get(0).getId(), payload, type, clientUUID);
     }
 
@@ -307,7 +307,7 @@ public class KeycloakUtil {
         }
         List<SSORoles> userRole = retrieveUserRole(users.get(0).getId(), type, clientUUID);
         userRole.remove(roles.get(0));
-        String payload = userRole.toString();
+        String payload = new Gson().toJson(userRole);
         return callForAddRole(users.get(0).getId(), payload, type, clientUUID);
     }
 
@@ -422,9 +422,6 @@ public class KeycloakUtil {
             ResponseEntity<List<SSORoles>> response = rest.exchange(adminUrl + path + "?search=" + name , HttpMethod.GET, request, new ParameterizedTypeReference<List<SSORoles>>() {});
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                if (Objects.requireNonNull(response.getBody()).isEmpty()) {
-                    throw new RoleNotFoundException();
-                }
                 return Objects.requireNonNull(response.getBody());
             } else {
                 throw new GenericException();
@@ -469,10 +466,7 @@ public class KeycloakUtil {
             ResponseEntity<List<SSORoles>> response = rest.exchange(userUrl + "/" + sub + urlAppend, HttpMethod.GET, request, new ParameterizedTypeReference<List<SSORoles>>() {});
 
         if (response.getStatusCode().is2xxSuccessful()) {
-            if (Objects.requireNonNull(response.getBody()).isEmpty()) {
-                throw new RoleNotFoundException();
-            }
-            return response.getBody();
+            return Objects.requireNonNull(response.getBody());
         } else {
             throw new GenericException();
         }

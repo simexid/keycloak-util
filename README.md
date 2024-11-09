@@ -21,12 +21,12 @@ Add the Maven dependency to your project:
 <dependency>
     <groupId>org.simexid.keycloak</groupId>
     <artifactId>keycloak-util</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 ```
 For Gradle users, add this dependency to your build.gradle file:
 ```groovy
-implementation 'org.simexid.keycloak:keycloak-util:0.0.6'
+implementation 'org.simexid.keycloak:keycloak-util:0.0.7'
 ```
 
 ## Configuration
