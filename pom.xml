@@ -5,7 +5,7 @@
   <groupId>org.simexid</groupId>
   <artifactId>keycloak-util</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.7</version>
+  <version>0.0.8</version>
   <name>keycloak-util</name>
   <description>A library for simplifying Keycloak admin API configuration and calls for spring boot application</description>
   <url>https://github.com/simexid/keycloak-util.git</url>
