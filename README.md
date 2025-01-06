@@ -21,12 +21,12 @@ Add the Maven dependency to your project:
 <dependency>
     <groupId>org.simexid.keycloak</groupId>
     <artifactId>keycloak-util</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
 </dependency>
 ```
 For Gradle users, add this dependency to your build.gradle file:
 ```groovy
-implementation 'org.simexid.keycloak:keycloak-util:0.0.7'
+implementation 'org.simexid.keycloak:keycloak-util:0.0.8'
 ```
 
 ## Configuration
@@ -107,11 +107,12 @@ At this time, the following methods are available:
 | `callForAddRole`       | `(String userId, String jsonPayload, KeycloakEnum.Type type, String clientUUID)` | Calls the Keycloak API to override the role of a user. This overrides all the roles of the user.         |
 | `callForAddAttributes` | `(String userId, String jsonPayload)`                                            | Calls the Keycloak API to override attributes for a user. This overrides all the attributes of the user. |
 | `updateUser`           | `(String sub, SSOUser user)`                                                     | Update SSO user.                                                                                         |
+| `deleteUser`           | `(String sub)`                                                                   | Delete SSO user.                                                                                         |
 | `getToken`             | None                                                                             | Retrieve the current authorized token and the expiration                                                 |
 
 The **Javadoc** is available [here](https://simexid.github.io/keycloak-util/apidocs/org/simexid/keycloak/service/KeycloakUtil.html).
 
-Fot addRoleToUser, deleteRoleToUser, searchRoles and callForAddRole, the type parameter is used to specify if the role is a realm role or a client role. If the role is a client role, you can specified another clientUUID instead of the one specified in the application.yml. For realm role or default client-uuid leave null.
+For addRoleToUser, deleteRoleToUser, searchRoles and callForAddRole, the type parameter is used to specify if the role is a realm role or a client role. If the role is a client role, you can specify another clientUUID instead of the one specified in the application.yml. For realm role or default client-uuid leave null.
 
 ```java
 import org.simexid.keycloak.service.KeycloakUtil;
@@ -203,6 +204,10 @@ public class KeycloakServiceExample {
         user.setLastName("New Last Name");
         boolean updateUser = keycloakUtil.updateUser("user-id", user);
         System.out.println("Update User: " + updateUser);
+        
+        // Delete user
+        boolean deleteUser = keycloakUtil.deleteUser("user-id");
+        System.out.println("Delete User: " + deleteUser);
         
     }
 }

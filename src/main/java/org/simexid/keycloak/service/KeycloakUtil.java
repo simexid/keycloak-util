@@ -171,6 +171,33 @@ public class KeycloakUtil {
     }
 
     /**
+     * Deletes a user in Keycloak.
+     *
+     * @param sub the user ID
+     * return true if the user was deleted successfully, false otherwise
+     * @throws AuthorizationException if the client is not authorized
+     * @throws GenericException if an error occurs during the operation
+     */
+    public boolean deleteUser(String sub) throws AuthorizationException, GenericException {
+        if (!authorized()) {
+            return false;
+        }
+        try {
+            RestTemplate rest = new RestTemplate();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
+            HttpEntity<String> request =
+                    new HttpEntity<>(null, headers);
+
+            ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.DELETE, request, String.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            throw new GenericException();
+        }
+    }
+
+    /**
      * Adds attributes to a user in Keycloak.
      *
      * @param sub the user ID
