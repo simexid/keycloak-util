@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Objects;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * Utility class for interacting with Keycloak.
@@ -57,24 +60,8 @@ public class KeycloakUtil {
     @Value("${simexid.security.keycloak.grant-type}")
     private String grantType;
 
-    private String token = "";
-    private long expiration;
-
-    private HttpHeaders headers = new HttpHeaders();
-    private MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
-
-    /**
-     * Handles input for Keycloak authentication.
-     */
-    private void handleInputForKeycloakAuth() {
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        if (map.isEmpty()) {
-            map.add("client_id", clientId);
-            map.add("client_secret", clientSecret);
-            map.add("grant_type", grantType);
-        }
-    }
+    private volatile String token = "";
+    private volatile long expiration;
 
     /**
      * Authorizes the client with Keycloak. The token is stored in memory until it expires.
@@ -82,14 +69,19 @@ public class KeycloakUtil {
      * @return true if authorization is successful, false otherwise
      * @throws AuthorizationException if an error occurs during authorization
      */
-    public boolean authorized() throws AuthorizationException {
+    public synchronized boolean authorized() throws AuthorizationException {
         long now = new Date().getTime();
         if (!token.isEmpty() && now<expiration) {
             return true;
         }
         try {
             RestTemplate rest = new RestTemplate();
-            handleInputForKeycloakAuth();
+            HttpHeaders headers = new HttpHeaders();
+            MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            map.add("client_id", clientId);
+            map.add("client_secret", clientSecret);
+            map.add("grant_type", grantType);
             HttpEntity<MultiValueMap<String, String>> request =
                     new HttpEntity<>(map, headers);
             ResponseEntity<KeycloakTokenResponse> response = rest.postForEntity(tokenUrl, request, KeycloakTokenResponse.class);
@@ -123,6 +115,7 @@ public class KeycloakUtil {
         }
         try {
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
@@ -132,6 +125,40 @@ public class KeycloakUtil {
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 return new Gson().fromJson(response.getBody(), SSOUser.class);
+            } else if (response.getStatusCode().isSameCodeAs(HttpStatus.valueOf(404))) {
+                return null;
+            } else {
+                throw new GenericException();
+            }
+        } catch (Exception e) {
+            throw new GenericException();
+        }
+    }
+
+    /**
+     * Retrieves the user information from Keycloak.
+     *
+     * @param sub the user ID
+     * @return the full user information from keycloak in JSON string format
+     * @throws GenericException if an error occurs during the operation
+     * @throws AuthorizationException if the client is not authorized
+     */
+    public String getFullUserInfoPlain(String sub) throws GenericException, AuthorizationException {
+        if (!authorized()) {
+            return null;
+        }
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
+            HttpEntity<String> request =
+                    new HttpEntity<>(null, headers);
+
+            ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.GET, request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
             } else if (response.getStatusCode().isSameCodeAs(HttpStatus.valueOf(404))) {
                 return null;
             } else {
@@ -157,9 +184,39 @@ public class KeycloakUtil {
         }
         try {
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<SSOUser> request =
+                    new HttpEntity<>(user, headers);
+
+            ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.PUT, request, String.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            throw new GenericException();
+        }
+    }
+
+    /**
+     * Updates full user in Keycloak.
+     *
+     * @param sub the user ID
+     * @param user the full user in json string format
+     * @return true if the user was updated successfully, false otherwise
+     * @throws AuthorizationException if the client is not authorized
+     * @throws GenericException if an error occurs during the operation
+     */
+    public boolean updateUser(String sub, String user) throws AuthorizationException, GenericException {
+        if (!authorized()) {
+            return false;
+        }
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
+            HttpEntity<String> request =
                     new HttpEntity<>(user, headers);
 
             ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.PUT, request, String.class);
@@ -184,6 +241,7 @@ public class KeycloakUtil {
         }
         try {
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
@@ -208,20 +266,37 @@ public class KeycloakUtil {
      * @throws AttributesException if an error occurs during assigment of attributes
      */
     public boolean addUserAttributes(String sub, List<HashMap<String, List<String>>> attributes) throws AuthorizationException, GenericException, AttributesException {
-        SSOUser user = getUserInfo(sub);
-        for (HashMap<String, List<String>> attribute : attributes) {
-            for (Map.Entry<String, List<String>> entry : attribute.entrySet()) {
-                if (user.getAttributes()==null) {
-                    user.setAttributes(new HashMap<>());
-                }
-                user.getAttributes().put(entry.getKey(), entry.getValue());
-            }
+        if (attributes == null || attributes.isEmpty()) {
+            return true;
         }
-        String payload = "{" +
-                "\"email\":\""+user.getEmail()+"\","+
-                "\"attributes\":" +new Gson().toJson(user.getAttributes())+ "}" +
-                "}";
-        return callForAddAttributes(sub, payload);
+
+        String fullUserJson = getFullUserInfoPlain(sub);
+        if (fullUserJson == null || fullUserJson.isBlank()) {
+            return false;
+        }
+
+        try {
+            JsonObject userObject = JsonParser.parseString(fullUserJson).getAsJsonObject();
+
+            JsonObject attributesObject;
+            if (!userObject.has("attributes") || userObject.get("attributes").isJsonNull()) {
+                attributesObject = new JsonObject();
+            } else {
+                attributesObject = userObject.getAsJsonObject("attributes");
+            }
+
+            for (HashMap<String, List<String>> attribute : attributes) {
+                for (Map.Entry<String, List<String>> entry : attribute.entrySet()) {
+                    attributesObject.add(entry.getKey(), new Gson().toJsonTree(entry.getValue()));
+                }
+            }
+
+            userObject.add("attributes", attributesObject);
+            String updatedUserJson = userObject.toString();
+            return updateUser(sub, updatedUserJson);
+        } catch (IllegalStateException | JsonSyntaxException e) {
+            throw new AttributesException();
+        }
     }
 
     /**
@@ -235,43 +310,32 @@ public class KeycloakUtil {
      * @throws AttributesException if an error occurs during assigment of attributes
      */
     public boolean deleteUserAttributes(String sub, List<String> attributes) throws AuthorizationException, GenericException, AttributesException {
-        SSOUser user = getUserInfo(sub);
-        for (String attribute : attributes) {
-            user.getAttributes().remove(attribute);
+        if (attributes == null || attributes.isEmpty()) {
+            return true;
         }
-        String payload = "{" +
-                "\"email\":\""+user.getEmail()+"\","+
-                "\"attributes\":" +new Gson().toJson(user.getAttributes())+ "}" +
-                "}";
-        return callForAddAttributes(sub, payload);
-    }
 
-    /**
-     * Calls Keycloak to add/remove (rewrite) attributes to a user.
-     *
-     * @param sub the user ID
-     * @param payload the payload containing the attributes
-     * @return true if the attributes were added successfully, false otherwise
-     * @throws AuthorizationException if the client is not authorized
-     * @throws AttributesException if an error occurs during assigment of attributes
-     */
-    public boolean callForAddAttributes(String sub, String payload) throws AuthorizationException, AttributesException {
-        if (!authorized()) {
+        String fullUserJson = getFullUserInfoPlain(sub);
+        if (fullUserJson == null || fullUserJson.isBlank()) {
             return false;
         }
         try {
-            RestTemplate rest = new RestTemplate();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(token);
-            HttpEntity<String> request =
-                    new HttpEntity<>(payload, headers);
+            JsonObject userObject = JsonParser.parseString(fullUserJson).getAsJsonObject();
 
-            ResponseEntity<String> response = rest.exchange(userUrl + "/" + sub, HttpMethod.PUT, request, String.class);
+            if (!userObject.has("attributes") || userObject.get("attributes").isJsonNull()) {
+                return false;
+            }
 
-            return response.getStatusCode().is2xxSuccessful();
-        } catch (Exception e) {
+            JsonObject attributesObject = userObject.getAsJsonObject("attributes");
+            for (String attribute : attributes) {
+                attributesObject.remove(attribute);
+            }
+
+            userObject.add("attributes", attributesObject);
+            return updateUser(sub, userObject.toString());
+        } catch (IllegalStateException | JsonSyntaxException e) {
             throw new AttributesException();
         }
+        
     }
 
     /**
@@ -366,6 +430,7 @@ public class KeycloakUtil {
                     return false;
             }
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
@@ -394,6 +459,7 @@ public class KeycloakUtil {
         }
         try {
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
@@ -441,6 +507,7 @@ public class KeycloakUtil {
                     return null;
             }
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
@@ -485,6 +552,7 @@ public class KeycloakUtil {
                     return null;
             }
             RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
             HttpEntity<String> request =
