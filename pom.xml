@@ -5,7 +5,7 @@
   <groupId>org.simexid</groupId>
   <artifactId>keycloak-util</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.9</version>
+  <version>0.0.10</version>
   <name>keycloak-util</name>
   <description>A library for simplifying Keycloak admin API configuration and calls for spring boot application</description>
   <url>https://github.com/simexid/keycloak-util.git</url>
@@ -91,7 +91,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>3.4.</version>
         <executions>
           <execution>
             <id>attach-sources</id>
