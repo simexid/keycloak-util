@@ -21,12 +21,12 @@ Add the Maven dependency to your project:
 <dependency>
     <groupId>org.simexid.keycloak</groupId>
     <artifactId>keycloak-util</artifactId>
-    <version>0.0.8</version>
+    <version>0.0.10</version>
 </dependency>
 ```
 For Gradle users, add this dependency to your build.gradle file:
 ```groovy
-implementation 'org.simexid.keycloak:keycloak-util:0.0.8'
+implementation 'org.simexid.keycloak:keycloak-util:0.0.10'
 ```
 
 ## Configuration
@@ -93,32 +93,36 @@ public class YourService {
 The KeycloakUtil class provides methods to interact with the Keycloak admin APIs.
 At this time, the following methods are available:
 
-| **Method**             | **Input**                                                                        | **Description**                                                                                          |
-|------------------------|----------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `authorized`           | None                                                                             | Checks if the client is authorized.                                                                      |
-| `getUserInfo`          | `(String userId)`                                                                | Retrieves information about a user by their ID.                                                          |
-| `searchUser`           | `(KeycloakUtil.SearchType searchType, String searchValue)`                       | Searches for users by email, username, ID, or text.                                                      |
-| `addUserAttributes`    | `(String userId, List<HashMap<String, List>> attributes)`                        | Adds attributes to a user.                                                                               |
-| `deleteUserAttributes` | `(String userId, List attributes)`                                               | Deletes specified attributes from a user.                                                                |
-| `addRoleToUser`        | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`    | Adds a role to a user.                                                                                   |
-| `deleteRoleToUser`     | `(String userId, String roleName, KeycloakEnum.Type type, String clientUUID)`    | Deletes a role from a user.                                                                              |
-| `searchRoles`          | `(String name, KeycloakEnum.Type type, String clientUUID)`                       | Searches for roles by name.                                                                              |
-| `retrieveUserRole`     | `(String sub, KeycloakEnum.Type type, String clientUUID)`                        | Retrieves the roles of a user.                                                                           |
-| `callForAddRole`       | `(String userId, String jsonPayload, KeycloakEnum.Type type, String clientUUID)` | Calls the Keycloak API to override the role of a user. This overrides all the roles of the user.         |
-| `callForAddAttributes` | `(String userId, String jsonPayload)`                                            | Calls the Keycloak API to override attributes for a user. This overrides all the attributes of the user. |
-| `updateUser`           | `(String sub, SSOUser user)`                                                     | Update SSO user.                                                                                         |
-| `deleteUser`           | `(String sub)`                                                                   | Delete SSO user.                                                                                         |
-| `getToken`             | None                                                                             | Retrieve the current authorized token and the expiration                                                 |
+| **Method**              | **Input**                                                                                                                    | **Description**                                                                                                  |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `authorized`            | `()`                                                                                                                         | Checks if the client is authorized and refreshes the token when needed.                                         |
+| `getUserInfo`           | `(String sub)`                                                                                                               | Retrieves user information by Keycloak user id (`sub`).                                                         |
+| `getFullUserInfoPlain`  | `(String sub)`                                                                                                               | Retrieves full user JSON as raw string payload.                                                                 |
+| `updateUser`            | `(String sub, SSOUser user)`                                                                                                 | Updates user from `SSOUser` object.                                                                             |
+| `updateUser`            | `(String sub, String user)`                                                                                                  | Updates user from full JSON string payload.                                                                     |
+| `deleteUser`            | `(String sub)`                                                                                                               | Deletes an SSO user.                                                                                             |
+| `addUserAttributes`     | `(String sub, List<HashMap<String, List<String>>> attributes)`                                                               | Adds or replaces attributes inside user JSON, preserving the full user payload.                                 |
+| `deleteUserAttributes`  | `(String sub, List<String> attributes)`                                                                                      | Removes selected attribute keys from user JSON, preserving the full user payload.                               |
+| `searchUser`            | `(KeycloakEnum.SearchUserType searchUserType, String searchText)`                                                           | Searches users by selected search type (email, username, id, text, ...).                                        |
+| `addRoleToUser`         | `(KeycloakEnum.SearchUserType searchUserType, String searchText, String role, KeycloakEnum.Type type, String clientUUID)` | Adds a role to the matched user.                                                                                |
+| `deleteRoleToUser`      | `(KeycloakEnum.SearchUserType searchUserType, String searchText, String role, KeycloakEnum.Type type, String clientUUID)` | Removes a role from the matched user.                                                                           |
+| `searchRoles`           | `(String name, KeycloakEnum.Type type, String clientUUID)`                                                                   | Searches roles by name.                                                                                         |
+| `retrieveUserRole`      | `(String sub, KeycloakEnum.Type type, String clientUUID)`                                                                    | Retrieves user roles.                                                                                           |
+| `callForAddRole`        | `(String sub, String payload, KeycloakEnum.Type type, String clientUUID)`                                                   | Calls Keycloak role mapping endpoint with a custom payload.                                                     |
+| `getToken`              | `()`                                                                                                                         | Returns current token and expiration if authorized.                                                             |
+
+`callForAddAttributes` has been removed from the public API.
 
 The **Javadoc** is available [here](https://simexid.github.io/keycloak-util/apidocs/org/simexid/keycloak/service/KeycloakUtil.html).
 
-For addRoleToUser, deleteRoleToUser, searchRoles and callForAddRole, the type parameter is used to specify if the role is a realm role or a client role. If the role is a client role, you can specify another clientUUID instead of the one specified in the application.yml. For realm role or default client-uuid leave null.
+For addRoleToUser and deleteRoleToUser, `searchUserType` and `searchText` are used to identify the user.
+For addRoleToUser, deleteRoleToUser, searchRoles and callForAddRole, the `type` parameter specifies if the role is a realm role or a client role. If the role is a client role, you can specify another `clientUUID` instead of the one configured in application.yml. For realm role or default client-uuid, leave null.
 
 ```java
 import org.simexid.keycloak.service.KeycloakUtil;
 import org.simexid.keycloak.enums.KeycloakEnum;
-import org.simexid.keycloak.models.SSOUser;
-import org.simexid.keycloak.models.SSORoles;
+import org.simexid.keycloak.model.SSOUser;
+import org.simexid.keycloak.model.SSORoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -142,17 +146,18 @@ public class KeycloakServiceExample {
         System.out.println("Authorized: " + isAuthorized);
 
         // Get user info
-        SSOUser user = keycloakUtil.getUserInfo("user-id"); //sub UUID
-        System.out.println("User Info: " + user);
+        SSOUser userInfo = keycloakUtil.getUserInfo("user-id"); //sub UUID
+        System.out.println("User Info: " + userInfo);
         
         // Search users
-        List<SSOUser> users = keycloakUtil.searchUser(KeycloakUtil.SearchType.EMAIL, "email");
+        List<SSOUser> users = keycloakUtil.searchUser(KeycloakEnum.SearchUserType.EMAIL, "email");
         System.out.println("Users: " + users);
 
         // Add user attributes
         List<HashMap<String, List<String>>> attributes = new ArrayList<>();
         HashMap<String, List<String>> attribute = new HashMap<>();
         attribute.put("attribute-name", List.of("attribute-value"));
+        attributes.add(attribute);
         boolean addAttributesResult = keycloakUtil.addUserAttributes("user-id", attributes);
         System.out.println("Add Attributes Result: " + addAttributesResult);
 
@@ -162,12 +167,16 @@ public class KeycloakServiceExample {
         boolean deleteAttributesResult = keycloakUtil.deleteUserAttributes("user-id", attributesToDelete);
         System.out.println("Delete Attributes Result: " + deleteAttributesResult);
 
+        // Get full user JSON
+        String fullUserJson = keycloakUtil.getFullUserInfoPlain("user-id");
+        System.out.println("Full User JSON: " + fullUserJson);
+
         // Add role to user
-        boolean addRoleResult = keycloakUtil.addRoleToUser("user-id", "role-name", KeycloakEnum.Type.REALM, null);
+        boolean addRoleResult = keycloakUtil.addRoleToUser(KeycloakEnum.SearchUserType.ID, "user-id", "role-name", KeycloakEnum.Type.REALM, null);
         System.out.println("Add Role Result: " + addRoleResult);
 
         // Delete role from user
-        boolean deleteRoleResult = keycloakUtil.deleteRoleToUser("user-id", "role-name", KeycloakEnum.Type.REALM, null);
+        boolean deleteRoleResult = keycloakUtil.deleteRoleToUser(KeycloakEnum.SearchUserType.ID, "user-id", "role-name", KeycloakEnum.Type.REALM, null);
         System.out.println("Delete Role Result: " + deleteRoleResult);
         
         // Search roles
@@ -179,31 +188,25 @@ public class KeycloakServiceExample {
         System.out.println("User Roles: " + userRoles);
 
         // Retrieve user roles for another client
-        List<SSORoles> userRoles = keycloakUtil.retrieveUserRole("user-id", KeycloakEnum.Type.CLIENT, "client-uuid");
-        System.out.println("User Roles: " + userRoles);
+        List<SSORoles> clientUserRoles = keycloakUtil.retrieveUserRole("user-id", KeycloakEnum.Type.CLIENT, "client-uuid");
+        System.out.println("User Roles: " + clientUserRoles);
         
-        // Call directly callForAddRole (this override all the role of the user)
-        String jsonPayload = "{" +
-                "\"email\":\"user@email\","+
-                "\"attributes\":[\"myAttribute\": [\"value\"] ] \"}" +
-                "}";
+        // Call directly callForAddRole
+        String jsonPayload = "[{\"id\":\"role-id\",\"name\":\"role-name\"}]";
         boolean callForAddRole = keycloakUtil.callForAddRole("user-id", jsonPayload, KeycloakEnum.Type.REALM, null);
         System.out.println("Call For Add Role: " + callForAddRole);
-        
-        // Call directly callForAddAttributes (this override all the attributes of the user)
-        String jsonPayload = "{" +
-                "\"email\":\"user@email\","+
-                "\"roles\": [\"myRole\"] \"}" +
-                "}";
-        boolean callForAddAttributes = keycloakUtil.callForAddAttributes("user-id", jsonPayload);
-        System.out.println("Call For Add Attributes: " + callForAddAttributes);
-        
+
         // Update user
-        SSOUser user = keycloakUtil.getUserInfo("user-id");
-        user.setFirstName("New First Name");
-        user.setLastName("New Last Name");
-        boolean updateUser = keycloakUtil.updateUser("user-id", user);
+        SSOUser userToUpdate = keycloakUtil.getUserInfo("user-id");
+        userToUpdate.setFirstName("New First Name");
+        userToUpdate.setLastName("New Last Name");
+        boolean updateUser = keycloakUtil.updateUser("user-id", userToUpdate);
         System.out.println("Update User: " + updateUser);
+
+        // Update user using full JSON payload
+        String userJsonToUpdate = keycloakUtil.getFullUserInfoPlain("user-id");
+        boolean updateUserFromJson = keycloakUtil.updateUser("user-id", userJsonToUpdate);
+        System.out.println("Update User (JSON): " + updateUserFromJson);
         
         // Delete user
         boolean deleteUser = keycloakUtil.deleteUser("user-id");
