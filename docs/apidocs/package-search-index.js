@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.simexid.keycloak"},{"l":"org.simexid.keycloak.enums"},{"l":"org.simexid.keycloak.exception"},{"l":"org.simexid.keycloak.model"},{"l":"org.simexid.keycloak.service"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"org.simexid.keycloak"},{"l":"org.simexid.keycloak.enums"},{"l":"org.simexid.keycloak.exception"},{"l":"org.simexid.keycloak.model"},{"l":"org.simexid.keycloak.service"}];updateSearchResults();
